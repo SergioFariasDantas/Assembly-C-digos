@@ -100,3 +100,21 @@ loop:
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+#4) Copiar os valores de um vetor com 10 valores inteiros para outro vetor
+.eqv	i	$t0
+.data
+	vetorA: .word 10, 11, -5, -7, 13, -8, -50, 99, 100, 200
+	vetorB: .space 40
+.text
+	li i, 0
+loop:
+	lw $t1, vetorA(i)
+	sw $t1, vetorB(i)
+	
+	addi	i,i, 4
+	
+	blt	i, 40, loop
+	
+fim:
+	li $v0, 10
+	syscall
