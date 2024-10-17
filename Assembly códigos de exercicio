@@ -1,0 +1,102 @@
+#1)imprimir os valores inteiros de 0 a 99
+.eqv	i	$t0
+.data
+	separador: .asciiz","
+.text
+	li i, 0
+loop:
+   	li $v0, 1
+	move $a0, i
+	syscall
+	
+	li $v0, 4
+	la $a0, separador
+	syscall
+	
+	addi	i, i, 1
+	
+	ble	i, 99, loop
+	
+fim:
+	li	$v0, 10
+	syscall
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#2) Receber um valor de entrada N. Imprmir todos os inteiros de 0 a N
+.eqv	i	$t0
+.eqv	N	$t1
+.data
+	separador: .asciiz","
+.text
+	li $v0, 5
+	syscall
+	move N, $v0
+	li i, 0
+loop:
+   	li $v0, 1
+	move $a0, i
+	syscall
+	
+	li $v0, 4
+	la $a0, separador
+	syscall
+	
+	addi	i, i, 1
+	
+	ble	i, N, loop
+	
+fim:
+	li	$v0, 10
+	syscall
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#2.5) Ler valores de um vetor e imprmi-lo (vetor inteiro)
+.eqv	i	$t0
+
+.data
+	vetorB: .byte 10, 11, 12, 13, 14, 15
+	newline: .asciiz "\n"
+
+.text
+	li i, 0
+loop:	
+	lb $t1, vetorB(i)
+	
+	li	$v0, 1
+	move 	$a0, $t1
+	syscall
+	
+	li $v0, 4
+	la $a0, newline
+	syscall
+	
+	addi	i,i, 1
+	blt 	i, 6, loop
+
+fim:
+	li $v0, 10
+	syscall
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  #3: preeceher um vetorcom inteiros inseridos
+.eqv	i	$t0
+.data
+	vetorW: .space 20
+	newline: .asciiz "\n"
+.text
+	li i, 0
+loop:
+	li $v0, 5
+	
+	syscall
+	
+	sw $v0, vetorW(i) #endereço = vetorW + i
+	
+	addi i, i, 4
+	blt i, 20, loop
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
