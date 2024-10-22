@@ -1,0 +1,167 @@
+.data
+    filename_read:    .asciiz "lista.txt"              # Nome do arquivo de entrada
+    filename_write:   .asciiz "lista_ordenada.txt"     # Nome do arquivo de saída
+    buffer:           .space 1024                      # Buffer para leitura dos dados do arquivo
+    lista:            .space 400                       # Espaço na memória para armazenar os números da lista
+    lista_tamanho:    .word 0                          # Tamanho da lista
+    newline:          .asciiz "\n"                     # Para quebrar linha no arquivo de saída
+
+.text
+.globl main
+
+# Função principal
+main:
+    # Abrir o arquivo para leitura
+    li $v0, 13                    # syscall: open file
+    la $a0, filename_read          # nome do arquivo
+    li $a1, 0                      # modo leitura
+    li $a2, 0                      # flags
+    syscall
+    move $s0, $v0                  # guarda o descritor do arquivo em $s0
+
+    # Ler o conteúdo do arquivo para o buffer
+    li $v0, 14                    # syscall: read file
+    move $a0, $s0                 # descritor do arquivo
+    la $a1, buffer                # endereço do buffer de leitura
+    li $a2, 1024                  # tamanho máximo a ser lido
+    syscall
+
+    # Fechar o arquivo
+    li $v0, 16                    # syscall: close file
+    move $a0, $s0                 # descritor do arquivo
+    syscall
+
+    # Converte a string lida para inteiros e armazena na lista
+    la $a0, buffer                # endereço da string lida
+    jal converter_string_para_inteiros
+
+    # Ordena a lista de inteiros (Bubble Sort)
+    jal bubble_sort
+
+    # Abrir o arquivo para escrita
+    li $v0, 13                    # syscall: open file
+    la $a0, filename_write         # nome do arquivo
+    li $a1, 1                      # modo escrita
+    li $a2, 0                      # flags
+    syscall
+    move $s0, $v0                  # guarda o descritor do arquivo em $s0
+
+    # Escreve a lista ordenada no arquivo
+    jal escrever_lista_ordenada
+
+    # Fechar o arquivo
+    li $v0, 16                    # syscall: close file
+    move $a0, $s0                 # descritor do arquivo
+    syscall
+
+    # Encerrar o programa
+    li $v0, 10                    # syscall: exit
+    syscall
+
+# Rotina: Converter string para inteiros e armazenar na lista
+converter_string_para_inteiros:
+    # $a0 = endereço da string
+    # Código que percorre a string e converte para inteiros, armazenando na lista
+    li $t0, 0                      # Índice para a lista
+    li $t1, 0                      # Índice da string
+
+converter_loop:
+    lb $t2, 0($a0)                 # Carregar o próximo byte da string
+    beqz $t2, converter_fim        # Se for nulo, fim da string
+
+    # Verifica se é uma vírgula (separador)
+    li $t3, 44                     # ASCII da vírgula
+    beq $t2, $t3, converter_adicionar_numero
+
+    # Converte o caractere para número (caractere ASCII)
+    sub $t2, $t2, 48               # Subtrai 48 para ajustar para número
+    mul $t4, $t4, 10               # Multiplica o número atual por 10 (para o próximo dígito)
+    add $t4, $t4, $t2              # Adiciona o novo dígito
+
+    # Próximo caractere
+    addi $a0, $a0, 1
+    j converter_loop
+
+converter_adicionar_numero:
+    # Adiciona o número na lista
+    sw $t4, lista($t0)            # Armazena o número na lista
+    addi $t0, $t0, 4              # Incrementa o índice da lista
+    li $t4, 0                     # Reseta o acumulador de número
+
+    # Próximo caractere
+    addi $a0, $a0, 1
+    j converter_loop
+
+converter_fim:
+    jr $ra
+
+# Rotina: Ordenar a lista com Bubble Sort
+bubble_sort:
+    # Código de Bubble Sort para ordenar a lista
+    la $t0, lista
+    lw $t1, lista_tamanho         # Carrega o tamanho da lista
+    subi $t1, $t1, 1              # t1 = tamanho - 1
+
+outer_loop:
+    li $t2, 0                     # $t2 = índice inicial
+    li $t3, 0                     # Flag de troca
+    bge $t2, $t1, bubble_sort_end
+
+inner_loop:
+    lw $t4, 0($t0)                # Carrega o elemento atual
+    lw $t5, 4($t0)                # Carrega o próximo elemento
+    ble $t4, $t5, no_swap         # Se já estiver ordenado, pule a troca
+
+    # Troca os elementos
+    sw $t5, 0($t0)                # Troca o próximo com o atual
+    sw $t4, 4($t0)                # Troca o atual com o próximo
+    li $t3, 1                     # Define a flag de troca
+
+no_swap:
+    addi $t0, $t0, 4              # Próximo elemento
+    blt $t2, $t1, inner_loop      # Continua o loop interno
+
+    # Se houve troca, repete o loop
+    bnez $t3, outer_loop
+
+bubble_sort_end:
+    jr $ra
+
+# Rotina: Escrever lista ordenada no arquivo
+escrever_lista_ordenada:
+    # Percorre a lista ordenada e escreve no arquivo
+    la $t0, lista
+    lw $t1, lista_tamanho         # Carrega o tamanho da lista
+    li $t2, 0                     # Índice para percorrer a lista
+
+write_loop:
+    bge $t2, $t1, write_fim       # Se índice >= tamanho, fim
+
+    lw $a0, 0($t0)                # Carrega o número
+    jal int_to_string              # Converte inteiro para string
+
+    # Escreve o número no arquivo
+    li $v0, 15                    # syscall: write file
+    move $a0, $s0                 # descritor do arquivo
+    la $a1, buffer                # buffer (com número convertido)
+    li $a2, 4                     # número de bytes a escrever
+    syscall
+
+    # Escreve nova linha
+    li $v0, 15                    # syscall: write file
+    move $a0, $s0                 # descritor do arquivo
+    la $a1, newline               # nova linha
+    li $a2, 1                     # número de bytes
+    syscall
+
+    addi $t2, $t2, 1              # Próximo índice
+    addi $t0, $t0, 4              # Próximo número
+    j write_loop
+
+write_fim:
+    jr $ra
+
+# Rotina: Converter inteiro para string (não implementado completamente)
+int_to_string:
+    # Código para converter inteiro para string
+    jr $ra
