@@ -118,3 +118,51 @@ loop:
 fim:
 	li $v0, 10
 	syscall
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#5) String to Number:
+.eqv	num	$s0
+.eqv	char	$s1
+.eqv	digito	$s2
+.eqv	i	$t0
+.eqv	k	$t1
+.eqv	flag	$t2
+
+.data
+   str_num:.asciiz "-247,"
+   	.align 2
+   vetor_num: .space 12
+.text
+    li	i, 0
+    li	num, 0
+    li	flag, 1
+loop:    
+    lb	char, str_num(i)
+    beqz	char, fim
+    beq	char, ',', armazena
+    beq	char '-', negativo
+    
+converte:
+   sub	digito, char, 0x30
+   mul	$t3, num, 10
+   add	num, $t3, digito
+   addi	i, i, 1
+   j	loop
+
+
+negativo:
+     li	flag, -1
+     addi	i, i, 1
+     j	loop       
+
+armazena:
+   mul     	num, num, flag
+   sw	num, vetor_num(k)
+   addi	k, k, 4
+   addi	i, i, 1
+   beqz	char, fim
+   j	loop 
+fim:
+   li	$v0, 10
+   syscall   
