@@ -135,6 +135,7 @@ fim:
    vetor_num: .space 12
 .text
     li	i, 0
+    li  k, 0
     li	num, 0
     li	flag, 1
 loop:    
