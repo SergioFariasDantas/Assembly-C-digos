@@ -32,13 +32,13 @@ main:
 
 #Leitura do arquivo:
 	move	$a0, $s0
-	li	$v0, 14		
+	li	$v0, 14		#Comando de Leitura do arquivo
 	la	$a1, buffer
 	la	$a2, 1024
 	syscall
 
 #Fechar o arquivo:
-	li	$v0, 16
+	li	$v0, 16		#COmando de fechamento do arquivo
 	move	$a0, $s0
 	syscall
 
@@ -112,12 +112,12 @@ saiLoop:
 #Escrevendo no arquivo
 	li	$v0, 15
 	move	$a0, $s0
-	la	$a1, meuArray
+	la	$a1, meuArray	#Impressão dos valores
 	li	$a2, 1200
 	syscall
 	
 #Fechar o arquivo
-	li	$v0, 16
-	move	$a0, $s0
+	li	$v0, 16		#Comando de fechamento
+	move	$a0, $s0	
 	syscall
    
