@@ -4,23 +4,21 @@
 .eqv	i	$t0
 .eqv	k	$t1
 .eqv	flag	$t2
-
+.eqv	troca	$t4
 
 .data
 ler_Lista:	.asciiz "lista.txt"
 escrever_Lista:	.asciiz "lista_ordenada.txt"
 buffer:		.space 1024	#Buffer para leitura de dados 
 lista:		.space	400	#Espaço da memória usado para armazenar os números da lista
-lista_tamanho:	.word	0
+lista_tamanho:	.word	100
 newline:	.asciiz"\n"
 
 li	$t8, 200		#Tamanho do array
 	.align 2
-vetor_num: .space 1200
+vetor_num: .space 1024
 
-meuArray:
-	.align 2
-	.space 1200
+
 .text
 main:
 #Abertura do arquivo para leitura:
@@ -43,81 +41,115 @@ main:
 	syscall
 
 #Rotina de retorno do tamanho de uma string para um inteiro:
-    li	i, 0
-    li  k, 0
-    li	num, 0
-    li	flag, 1
-loop_1:    
-    lb	char, ler_Lista(i)
-    beqz	char, fim
-    beq	char, ',', armazena
-    beq	char '-', negativo
-    
-converte:
-   sub	digito, char, 0x30
-   mul	$t3, num, 10
-   add	num, $t3, digito
-   addi	i, i, 1
-   j	loop_1
+    li	$t0, 0		# i = 0 (índice do buffer)
+    li	$t1, 0		# k = 0 (índice do vetor_num)
+    li	$s0, 0		# num = 0
+    li	$t2, 1		# flag = 1
 
+loop_1:    
+    lb	$s1, buffer($t0)	# Carregar o caractere atual do buffer
+    beqz	$s1, fim		# Se for o final da string, sai
+    beq	$s1, ',', armazena	# Se for vírgula, armazena
+    beq	$s1, '-', negativo	# Se for sinal negativo, trata
+
+converte:
+    sub	$s2, $s1, 0x30	# Converte caractere para dígito
+    mul	$t3, $s0, 10		# num = num * 10
+    add	$s0, $t3, $s2	# num = num + dígito
+    addi	$t0, $t0, 1		# i++
+    j	loop_1
 
 negativo:
-     li	flag, -1
-     addi	i, i, 1
-     j	loop_1   	    
+    li	$t2, -1		# flag = -1
+    addi	$t0, $t0, 1		# i++
+    j	loop_1    
 
 armazena:
-   mul     	num, num, flag
-   sw	num, vetor_num(k)
-   addi	k, k, 4
-   addi	i, i, 1
-   beqz	char, fim
-   j	loop_1
-
+    mul	$s0, $s0, $t2		# num = num * flag
+    sw	$s0, vetor_num($t1)	# Armazena o número no vetor
+    addi	$t1, $t1, 4		# k += 4 (próximo inteiro)
+    addi	$t0, $t0, 1		# i++
+    li	$s0, 0			# Reseta num para o próximo número
+    li	$t2, 1			# Reseta flag para 1
+    j	loop_1
 
 fim:
+    srl	$t1, $t1, 2		# k = k / 4 (número de inteiros)
+    sw	$t1, lista_tamanho	# Armazena o tamanho da lista.eqv	num	$s0
+.eqv	char	$s1
+.eqv	digito	$s2
+.eqv	i	$t0
+.eqv	k	$t1
+.eqv	flag	$t2
+.eqv	troca	$t4
 
-#Algoritmo de ordenação e armazenamento na memória
-   li   $t4, 0             # Inicializa o índice para percorrer vetor_num
-   li   $t5, 0             # Inicializa o índice para percorrer meuArray
-   li   $t6, 200           # Tamanho do array ou condição de parada
+.data
+ler_Lista:	.asciiz "lista.txt"
+escrever_Lista:	.asciiz "lista_ordenada.txt"
+buffer:		.space 1024	#Buffer para leitura de dados 
+lista:		.space	400	#Espaço da memória usado para armazenar os números da lista
+lista_tamanho:	.word	100
+newline:	.asciiz"\n"
+
+li	$t8, 200		#Tamanho do array
+	.align 2
+vetor_num: .space 1024
 
 
+.text
+main:
+#Abertura do arquivo para leitura:
+	li	$v0, 13		#Abrir arquivo
+	la	$a0, ler_Lista
+	li	$a1, 0	#modo de leitura
+	syscall
+	move $s0, $v0
 
-loop_2:
-   beq  $t4, $t6, saiLoop  # Sai do loop se o índice alcançar o tamanho desejado
-
-   # Carregar o valor de vetor_num
-   lw    $t3, vetor_num($t4)
-   
-   # Armazenar o valor em meuArray
-   sw   $t3, meuArray($t5)
-   
-   # Incrementar os índices
-   addi $t4, $t4, 4        # Próximo elemento de vetor_num
-   addi $t5, $t5, 4        # Próximo elemento de meuArray
-
-   j    loop_2             # Continua o loop
-
-saiLoop:
-      
-#Abertura do arquivo para escrita:
-   li 	$v0, 13		#Abrir arquivo
-   la	$a0, escrever_Lista
-   li	$a1, 1	#Modo Escrita
-   syscall
-   
-   move	$s0, $v0
- 
-#Escrevendo no arquivo
-	li	$v0, 15
+#Leitura do arquivo:
 	move	$a0, $s0
-	la	$a1, meuArray	#Impressão dos valores
-	li	$a2, 1200
+	li	$v0, 14		#Comando de Leitura do arquivo
+	la	$a1, buffer
+	la	$a2, 1024
 	syscall
-	
-#Fechar o arquivo
-	li	$v0, 16		#Comando de fechamento
-	move	$a0, $s0	
+
+#Fechar o arquivo:
+	li	$v0, 16		#COmando de fechamento do arquivo
+	move	$a0, $s0
 	syscall
-   
+
+#Rotina de retorno do tamanho de uma string para um inteiro:
+    li	$t0, 0		# i = 0 (índice do buffer)
+    li	$t1, 0		# k = 0 (índice do vetor_num)
+    li	$s0, 0		# num = 0
+    li	$t2, 1		# flag = 1
+
+loop_1:    
+    lb	$s1, buffer($t0)	# Carregar o caractere atual do buffer
+    beqz	$s1, fim		# Se for o final da string, sai
+    beq	$s1, ',', armazena	# Se for vírgula, armazena
+    beq	$s1, '-', negativo	# Se for sinal negativo, trata
+
+converte:
+    sub	$s2, $s1, 0x30	# Converte caractere para dígito
+    mul	$t3, $s0, 10		# num = num * 10
+    add	$s0, $t3, $s2	# num = num + dígito
+    addi	$t0, $t0, 1		# i++
+    j	loop_1
+
+negativo:
+    li	$t2, -1		# flag = -1
+    addi	$t0, $t0, 1		# i++
+    j	loop_1    
+
+armazena:
+    mul	$s0, $s0, $t2		# num = num * flag
+    sw	$s0, vetor_num($t1)	# Armazena o número no vetor
+    addi	$t1, $t1, 4		# k += 4 (próximo inteiro)
+    addi	$t0, $t0, 1		# i++
+    li	$s0, 0			# Reseta num para o próximo número
+    li	$t2, 1			# Reseta flag para 1
+    j	loop_1
+
+fim:
+    srl	$t1, $t1, 2		# k = k / 4 (número de inteiros)
+    sw	$t1, lista_tamanho	# Armazena o tamanho da lista
