@@ -28,21 +28,21 @@ vetor_num: .space 1024
 main:
 #Abertura do arquivo para leitura:
 	li	$v0, 13		#Abrir arquivo
-	la	$a0, ler_Lista
-	li	$a1, 0	#modo de leitura
+	la	$a0, ler_Lista		#Local de leitura do arquivo
+	li	$a1, 0		#modo de leitura
 	syscall
-	move $s0, $v0
+	move $s0, $v0		#Necessário mover o leitor para $s0
 
 #Leitura do arquivo:
-	move	$a0, $s0
+	move	$a0, $s0	#Necessário mover o leitor para $a0
 	li	$v0, 14		#Comando de Leitura do arquivo
-	la	$a1, buffer
+	la	$a1, buffer	#Local onde ficará armazenado o contéudo do arquivo
 	la	$a2, 1024
 	syscall
 
 #Fechar o arquivo:
-	li	$v0, 16		#COmando de fechamento do arquivo
-	move	$a0, $s0
+	li	$v0, 16		#Comando de fechamento do arquivo
+	move	$a0, $s0	#Necessário mover o leitor para $a0
 	syscall
 
 #Rotina de retorno do tamanho de uma string para um inteiro:
@@ -139,25 +139,25 @@ Proximo:
 	add	index_buf, index_buf, 1
 	
 #Abertura do arquivo de escrita:
-	li	$v0, 13
-	la	$a0, escrever_Lista
+	li	$v0, 13			#Comando de abertura do arquivo
+	la	$a0, escrever_Lista	#Comando de local de escrita
 	li	$a1, 1
 	syscall
 	
-	move	$s0, $v0
+	move	$s0, $v0		#Necessário mover o escritor para $s0
 	
 #Escrita do arquivo
-	li	$v0, 15
-	move	$a0, $s0
-	la	$a1, buffer
+	li	$v0, 15			#Comando de escrita do arquivo
+	move	$a0, $s0		#Necessário mover escritor para $a0
+	la	$a1, buffer		#Local onde os indíces de escrita estão armazenados
 	li	$a2, 500
 	syscall
 
 #Fechar o arquivo:
-	li	$v0, 16		#COmando de fechamento do arquivo
-	move	$a0, $s0
+	li	$v0, 16		#Comando de fechamento do arquivo
+	move	$a0, $s0	#Necessário mover o escritor para $a0
 	syscall
 	
 Finalizar_Programa:
-	li	$v0, 10
+	li	$v0, 10		#Comando de finalização do programa
 	syscall	
